@@ -5,14 +5,10 @@ import tensorflow as tf
 
 st.set_page_config(page_title="MSMarineToxNet", layout="centered")
 
-st.markdown(
-    """
-    <h1 style='text-align: center; color: #2c3e50;'>🌊 MSMarineToxNet 平台</h1>
-    <p style='text-align: center; color: #34495e;'>Mass Spectrum-Based Marine Toxicity Prediction</p>
-    <hr style='border: 1px solid #3498db;'/>
-    """,
-    unsafe_allow_html=True,
-)
+st.markdown(" MSMarineToxNet")
+st.markdown("*Mass Spectrum-Based Marine Toxicity Prediction*")
+st.markdown("---")
+
 
 # 下载 demo 文件
 with open("demo_input_template.xlsx", "rb") as file:
