@@ -1,29 +1,36 @@
+# 升级 pip，避免 metadata 构建失败
 pip>=25.0
 
-# 核心环境
-numpy==1.26.4
+# 科学计算核心
+numpy==1.24.4
 pandas==2.2.3
 scikit-learn==1.5.2
 scipy==1.13.1
+
+# 可视化与日志记录
 matplotlib==3.9.2
 seaborn==0.13.2
+rich==14.0.0
+markdown-it-py==3.0.0
+mdurl==0.1.2
+Pygments==2.18.0
 
 # TensorFlow CPU 版本（Streamlit Cloud 不支持 GPU）
 tensorflow==2.19.0
 tensorflow-estimator==2.9.0
 tensorflow-io-gcs-filesystem==0.31.0
 
-# 可选优化工具
-optuna==4.0.0
+# 模型解释和优化
 shap==0.47.2
-
-# Streamlit 平台核心依赖
-streamlit==1.35.0
-rich==14.0.0
-markdown-it-py==3.0.0
-mdurl==0.1.2
-Pygments==2.18.0
+optuna==4.0.0
 
 # 文件处理
 openpyxl==3.1.5
 pyyaml==6.0.2
+
+# ONNX 支持（若你用 tf2onnx 导出模型）
+onnx==1.17.0
+tf2onnx==1.16.1
+
+# Streamlit 主程序
+streamlit==1.35.0
