@@ -2,13 +2,14 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import tensorflow as tf
+from io import BytesIO
 
 st.set_page_config(page_title="MSMarineToxNet", layout="centered")
 
-st.markdown(" MSMarineToxNet")
+# 页面标题
+st.markdown("## 🌊 MSMarineToxNet 平台")
 st.markdown("*Mass Spectrum-Based Marine Toxicity Prediction*")
 st.markdown("---")
-
 
 # 下载 demo 文件
 with open("demo_input_template.xlsx", "rb") as file:
@@ -22,13 +23,12 @@ with open("demo_input_template.xlsx", "rb") as file:
 # 加载模型
 @st.cache_resource
 def load_model():
-    model = tf.keras.models.load_model("mass_to_aquatic_toxicity_final_best_RI and species_attention_20250531.h5", compile=False)
+    model = tf.keras.models.load_model("final.h5", compile=False)  # 请确认文件名一致
     return model
 
 # 数据预处理
 def preprocess_data(df):
     try:
-        # 提取 m/z + intensity 特征
         mz_cols = [col for col in df.columns if "m/z" in col]
         intensity_cols = [col for col in df.columns if "intensity" in col]
         mz_intensity_cols = mz_cols + intensity_cols
@@ -36,7 +36,6 @@ def preprocess_data(df):
         X_mz_intensity = df[mz_intensity_cols].values.astype(float)
         X_mz_intensity = X_mz_intensity.reshape((X_mz_intensity.shape[0], -1, 1))
 
-        # RI 和 species 特征
         X_ri = df[['RI']].values.astype(float)
         X_species = df[['species']].values.astype(float)
 
@@ -54,26 +53,25 @@ if uploaded_file:
         st.success("✅ 文件读取成功，数据预览如下：")
         st.dataframe(df.head())
 
-        # 模型预测
         X_ri, X_mz_intensity, X_species = preprocess_data(df)
         if X_ri is not None:
             model = load_model()
             preds = model.predict([X_ri, X_mz_intensity, X_species], verbose=0)
 
-            # 生成结果表
             pred_df = pd.DataFrame(preds, columns=[f"Pred_LC50_{i+1}" for i in range(preds.shape[1])])
             result_df = pd.concat([df, pred_df], axis=1)
 
             st.success("✅ 毒性预测完成，结果如下：")
             st.dataframe(result_df.head())
 
-            # 提供下载
-            result_file = result_df.to_excel(index=False, engine="openpyxl")
+            # 保存为 BytesIO
+            output = BytesIO()
+            result_df.to_excel(output, index=False, engine='openpyxl')
             st.download_button(
                 label="📥 下载预测结果",
-                data=result_file,
+                data=output.getvalue(),
                 file_name="toxicity_prediction_results.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
     except Exception as e:
-        st.error(f"❌ 读取 Excel 文件失败：{e}")
+        st.error(f"❌ 读取或预测过程中出错：{e}")
