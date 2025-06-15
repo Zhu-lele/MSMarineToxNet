@@ -6,72 +6,55 @@ from io import BytesIO
 
 st.set_page_config(page_title="MSMarineToxNet", layout="centered")
 
-# 页面标题
-st.markdown("## 🌊 MSMarineToxNet 平台")
-st.markdown("*Mass Spectrum-Based Marine Toxicity Prediction*")
+st.markdown("## MSMarineToxNet")
+st.markdown("仅需上传含 m/z、intensity、RI、species 的 Excel 表格，即可预测毒性")
 st.markdown("---")
 
-# 下载 demo 文件
+# 下载模板
 with open("demo_input_template.xlsx", "rb") as file:
-    st.download_button(
-        label="📥 下载预测模板文件（demo_input_template.xlsx）",
-        data=file,
-        file_name="demo_input_template.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    st.download_button("📥 下载 demo 模板文件", file, file_name="demo_input_template.xlsx")
 
-# 加载模型
+# 加载模型（只加载一次）
 @st.cache_resource
 def load_model():
-    model = tf.keras.models.load_model("final.h5", compile=False)  # 请确认文件名一致
-    return model
+    return tf.keras.models.load_model("final.h5", compile=False)
 
-# 数据预处理
-def preprocess_data(df):
-    try:
-        mz_cols = [col for col in df.columns if "m/z" in col]
-        intensity_cols = [col for col in df.columns if "intensity" in col]
-        mz_intensity_cols = mz_cols + intensity_cols
+# 处理上传的 Excel 文件
+def preprocess_input(df):
+    mz_cols = [col for col in df.columns if "m/z" in col]
+    intensity_cols = [col for col in df.columns if "intensity" in col]
+    mz_intensity_cols = mz_cols + intensity_cols
 
-        X_mz_intensity = df[mz_intensity_cols].values.astype(float)
-        X_mz_intensity = X_mz_intensity.reshape((X_mz_intensity.shape[0], -1, 1))
+    X_mz_intensity = df[mz_intensity_cols].values.astype(float)
+    X_mz_intensity = X_mz_intensity.reshape((X_mz_intensity.shape[0], -1, 1))
 
-        X_ri = df[['RI']].values.astype(float)
-        X_species = df[['species']].values.astype(float)
+    X_ri = df[['RI']].values.astype(float)
+    X_species = df[['species']].values.astype(float)
 
-        return X_ri, X_mz_intensity, X_species
-    except Exception as e:
-        st.error(f"❌ 数据预处理出错：{e}")
-        return None, None, None
+    return X_ri, X_mz_intensity, X_species
 
-# 上传 Excel 数据
-uploaded_file = st.file_uploader("📤 上传填写好的预测文件（Excel 格式）", type=["xlsx"])
+# 上传预测文件
+uploaded_file = st.file_uploader("📤 上传填写好的 Excel 文件", type=["xlsx"])
 
 if uploaded_file:
     try:
         df = pd.read_excel(uploaded_file)
-        st.success("✅ 文件读取成功，数据预览如下：")
-        st.dataframe(df.head())
+        X_ri, X_mz_intensity, X_species = preprocess_input(df)
 
-        X_ri, X_mz_intensity, X_species = preprocess_data(df)
-        if X_ri is not None:
-            model = load_model()
-            preds = model.predict([X_ri, X_mz_intensity, X_species], verbose=0)
+        model = load_model()
+        preds = model.predict([X_ri, X_mz_intensity, X_species], verbose=0)
 
-            pred_df = pd.DataFrame(preds, columns=[f"Pred_LC50_{i+1}" for i in range(preds.shape[1])])
-            result_df = pd.concat([df, pred_df], axis=1)
+        df["Pred_LC50"] = preds.flatten()
 
-            st.success("✅ 毒性预测完成，结果如下：")
-            st.dataframe(result_df.head())
-
-            # 保存为 BytesIO
-            output = BytesIO()
-            result_df.to_excel(output, index=False, engine='openpyxl')
-            st.download_button(
-                label="📥 下载预测结果",
-                data=output.getvalue(),
-                file_name="toxicity_prediction_results.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
+        # 直接下载修改后的原始表
+        output = BytesIO()
+        df.to_excel(output, index=False, engine='openpyxl')
+        st.success("✅ 预测完成，点击下方按钮下载结果")
+        st.download_button(
+            "📥 下载带预测值的 Excel 文件",
+            data=output.getvalue(),
+            file_name="prediction_result.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
     except Exception as e:
-        st.error(f"❌ 读取或预测过程中出错：{e}")
+        st.error(f"❌ 出错了：{e}")
