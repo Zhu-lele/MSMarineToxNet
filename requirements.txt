@@ -1,37 +1,18 @@
-pip>=25.0
-
-# Streamlit 平台核心
 streamlit==1.35.0
 
-# 科学计算（安全版本，无需编译）
+# 科学计算
 numpy==1.24.4
 pandas==2.2.3
 scikit-learn==1.4.2
 scipy==1.11.4
 
-# 可视化与终端输出（平台强烈建议使用）
+# 可视化
 matplotlib==3.7.1
 seaborn==0.12.2
 rich==13.7.1
-markdown-it-py==2.2.0
-mdurl==0.1.2
-Pygments==2.17.2
 
-# TensorFlow CPU 版本（已知最稳定）
-tensorflow==2.13.0
-tensorflow-estimator==2.13.0
-tensorflow-io-gcs-filesystem==0.31.0
-
-# Excel文件读取支持（如你用到 openpyxl）
+# Excel支持
 openpyxl==3.1.2
 
-# YAML 解析（如配置文件用到）
-pyyaml==6.0.1
-
-# 可选：ONNX模型转换（仅在需要时启用）
-onnx==1.14.0
-tf2onnx==1.14.0
-
-# 可选：模型调优 & 可解释性（安全版本）
-optuna==3.5.0
-shap==0.41.0
+# PyTorch
+torch==2.2.1
