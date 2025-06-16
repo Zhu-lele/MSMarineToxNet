@@ -1,18 +1,5 @@
 streamlit==1.35.0
-
-# 科学计算
-numpy==1.24.4
-pandas==2.2.3
-scikit-learn==1.4.2
-scipy==1.11.4
-
-# 可视化
-matplotlib==3.7.1
-seaborn==0.12.2
-rich==13.7.1
-
-# Excel支持
-openpyxl==3.1.2
-
-# PyTorch
+pandas
+numpy
 torch==2.2.1
+openpyxl
